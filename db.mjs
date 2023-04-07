@@ -4,7 +4,7 @@ import slug from 'mongoose-slug-updater';
 
 console.log('Waiting for connection to database...');
 try {
-  await mongoose.connect('mongodb://localhost/finalProject', {useNewUrlParser: true});
+  await mongoose.connect(`mongodb+srv://fm1539:6M2Swvd083GgGmhO@aitdbcluster.gbfatnd.mongodb.net/?retryWrites=true&w=majority`, {useNewUrlParser: true});
   console.log('Successfully connected to database.');
 } catch (err) {
   console.log('ERROR: ', err);

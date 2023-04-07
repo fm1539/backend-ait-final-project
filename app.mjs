@@ -22,27 +22,27 @@ const sess = {
     cookie: {},
     resave: true,
     saveUninitialized: true,
-  }
-  
-  if (app.get('env') === 'production') {
+}
+
+if (app.get('env') === 'production') {
     app.set('trust proxy', 1) // trust first proxy
     sess.cookie.secure = true // serve secure cookies
-  }
-  
+}
+
 app.use(session(sess))
 
 const User = mongoose.model("User")
 
 app.get("/isAuthenticated/:username", (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true)
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  // another common pattern
-  // res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  )
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    // another common pattern
+    // res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+    res.setHeader(
+        'Access-Control-Allow-Headers',
+        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    )
     console.log(req.session.user)
     if (req.session.user && req.session.user.username && req.session.user.username === req.params.username) res.send(true)
     else res.send(false)
@@ -50,18 +50,16 @@ app.get("/isAuthenticated/:username", (req, res) => {
 
 app.get("/profile/:username", async (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true)
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  // another common pattern
-  // res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  )
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    // another common pattern
+    // res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+    res.setHeader(
+        'Access-Control-Allow-Headers',
+        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    )
     const username = req.params.username
-    console.log(username)
-    const user = await User.findOne({username: username}).exec()
-    console.log(user)
+    const user = await User.findOne({ username: username }).exec()
     res.send({
         firstName: user._doc.fName,
         lastName: user._doc.lName
@@ -70,17 +68,19 @@ app.get("/profile/:username", async (req, res) => {
 
 app.post("/profile/update", async (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true)
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  // another common pattern
-  // res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  )
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    // another common pattern
+    // res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+    res.setHeader(
+        'Access-Control-Allow-Headers',
+        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    )
+    console.log(req.body)
     const newUsername = req.body.newUsername
     const origUsername = req.body.username
-    const user = await User.findOne({username: origUsername})
+    const user = await User.findOne({ username: origUsername })
+    console.log(user)
     if (user) {
         user.username = newUsername
         await user.save()
@@ -88,33 +88,33 @@ app.post("/profile/update", async (req, res) => {
         res.send("successful")
     }
     else res.send("unsuccessful")
-    
+
 })
 
-app.post("/login", async(req, res) => {
+app.post("/login", async (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true)
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  // another common pattern
-  // res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  )
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    // another common pattern
+    // res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+    res.setHeader(
+        'Access-Control-Allow-Headers',
+        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    )
     const { username } = req.body
     const incomingPassword = md5(req.body.password)
-    const foundUser = await User.findOne({username: username}).exec()
+    const foundUser = await User.findOne({ username: username }).exec()
     if (foundUser) {
         if (incomingPassword === foundUser.password) {
             startAuthenticatedSession(req, foundUser)
-            .then(user => {
-                console.log("SESSION", req.session)
-                console.log("LOGGED IN USER", user)
-                res.send({
-                    status: "successful",
-                    username: username
+                .then(user => {
+                    console.log("SESSION", req.session)
+                    console.log("LOGGED IN USER", user)
+                    res.send({
+                        status: "successful",
+                        username: username
+                    })
                 })
-            })
         }
         else res.send({
             status: "unsuccessful"
@@ -127,19 +127,19 @@ app.post("/login", async(req, res) => {
 
 app.post("/register", async (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true)
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  // another common pattern
-  // res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  )
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    // another common pattern
+    // res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+    res.setHeader(
+        'Access-Control-Allow-Headers',
+        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    )
     console.log(req.body)
     const { fName, lName } = req.body
     const username = sanitize(req.body.userName)
     const password = sanitize(md5(req.body.password))
-    const userExists = await User.findOne({username: username}).exec()
+    const userExists = await User.findOne({ username: username }).exec()
     console.log("REGISTER", userExists)
     if (!userExists) {
         const newUser = new User({
@@ -150,7 +150,7 @@ app.post("/register", async (req, res) => {
         })
         await newUser.save()
         res.send("registered")
-        }
+    }
     else res.send("user already exists")
 })
 ''
