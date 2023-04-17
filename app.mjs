@@ -21,7 +21,7 @@ import MongoStore from 'connect-mongo';
 
 
 app.use(cors({
-    origin: ["http://localhost:3000", "https://ait-final-project-y4qe.vercel.app/login"],
+    origin: ["http://localhost:3000", "https://ait-final-project-y4qe.vercel.app"],
     credentials: true
 }))
 // app.use(cookieParser())
