@@ -91,20 +91,20 @@ const isAuthenticated = (req, res, next) => {
     res.send("Not authenticated")
 }
 
-app.get("/isAuthenticated/:username", (req, res) => {
-    res.setHeader('Access-Control-Allow-Credentials', true)
-    // another common pattern
-    res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
-    res.setHeader(
-        'Access-Control-Allow-Headers',
-        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-    )
-    if (req.session.user && req.session.user.username && req.session.user.username === req.params.username) res.send(true)
-    else res.send(false)
-})
+// app.get("/isAuthenticated/:username", (req, res) => {
+//     res.setHeader('Access-Control-Allow-Credentials', true)
+//     // another common pattern
+//     res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+//     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+//     res.setHeader(
+//         'Access-Control-Allow-Headers',
+//         'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+//     )
+//     if (req.session.user && req.session.user.username && req.session.user.username === req.params.username) res.send(true)
+//     else res.send(false)
+// })
 
-app.get("/retrieveUserInfo", isAuthenticated, async (req, res) => {
+app.get("/retrieveUserInfo/:username", async (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true)
     // another common pattern
     res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
@@ -113,13 +113,13 @@ app.get("/retrieveUserInfo", isAuthenticated, async (req, res) => {
         'Access-Control-Allow-Headers',
         'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
     )
-    const username = req.user.username
+    const username = req.params.username
     const user = await User.findOne({ username }).exec()
     res.json(user)
 })
 
-app.get("/profile", isAuthenticated, async (req, res) => {
-    const username = req.user.username
+app.get("/profile/:username", async (req, res) => {
+    const username = req.params.username
     const user = await User.findOne({ username: username }).exec()
     res.send({
         firstName: user._doc.fName,
@@ -128,17 +128,19 @@ app.get("/profile", isAuthenticated, async (req, res) => {
     })
 })
 
-app.get("/myStore/items", isAuthenticated, async (req, res) => {
-    const user = await User.findOne({username: req.user.username}).populate('store')
+app.get("/myStore/items/:username", async (req, res) => {
+    const user = await User.findOne({username: req.params.username}).populate('store')
     const store = await Store.findOne({_id: user.store._id}).populate('items')
     console.log(store)
     res.send(store.items)    
 
 })
 
-app.post("/addItem", isAuthenticated, async (req, res) => {
+app.post("/addItem", async (req, res) => {
     const { itemName, price } = req.body.item
-    const store = await Store.findOne({_id: req.user.store})
+    const username = req.body.username
+    const user = await User.findOne({username})
+    const store = await Store.findOne({_id: user.store})
     const newItem = new Item({
         item: itemName,
         price: price
@@ -148,10 +150,9 @@ app.post("/addItem", isAuthenticated, async (req, res) => {
     await store.save()
 })
 
-app.post("/createStore", isAuthenticated, async (req, res) => {
-    const { storeName } = req.body
-    console.log(storeName)
-    const username = req.user.username
+app.post("/createStore", async (req, res) => {
+    const { storeName, username } = req.body
+    console.log(storeName, username)
     const findStoreWithGivenName = await Store.findOne({storeName})
     const user = await User.findOne({username})
     if (findStoreWithGivenName) res.send("Store with this name already exists")
@@ -164,13 +165,13 @@ app.post("/createStore", isAuthenticated, async (req, res) => {
         const newStoreSaved = await newStore.save()
         user.hasStore = true
         user.store = newStoreSaved._id
-        req.user = user
+        // req.user = user
         await user.save()
         res.send("successful")
     }
 })
 
-app.post("/profile/update", isAuthenticated, async (req, res) => {
+app.post("/profile/update", async (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true)
     // another common pattern
     res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
@@ -181,12 +182,12 @@ app.post("/profile/update", isAuthenticated, async (req, res) => {
     )
     console.log(req.body)
     const newUsername = req.body.newUsername
-    const origUsername = req.user.username
+    const origUsername = req.body.username
     const user = await User.findOne({ username: origUsername })
     console.log(user)
     if (user) {
         user.username = newUsername
-        req.user.username = newUsername
+        // req.user.username = newUsername
         await user.save()
         res.send("successful")
     }
@@ -194,8 +195,7 @@ app.post("/profile/update", isAuthenticated, async (req, res) => {
 
 })
 
-app.post("/login", passport.authenticate('local')
-    , async (req, res) => {
+app.post("/login", async (req, res) => {
         res.setHeader('Access-Control-Allow-Credentials', true)
         // another common pattern
         res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
@@ -204,7 +204,7 @@ app.post("/login", passport.authenticate('local')
             'Access-Control-Allow-Headers',
             'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
         )
-        console.log(req.user)
+        // console.log(req.user)
         res.json({ username: req.user.username })
 
     })
