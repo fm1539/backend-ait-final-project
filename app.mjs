@@ -86,7 +86,7 @@ const isAuthenticated = (req, res, next) => {
 app.get("/isAuthenticated/:username", (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true)
     // another common pattern
-    // res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+    res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
     res.setHeader(
         'Access-Control-Allow-Headers',
@@ -99,7 +99,7 @@ app.get("/isAuthenticated/:username", (req, res) => {
 app.get("/retrieveUserInfo", isAuthenticated, async (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true)
     // another common pattern
-    // res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+    res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
     res.setHeader(
         'Access-Control-Allow-Headers',
@@ -165,7 +165,7 @@ app.post("/createStore", isAuthenticated, async (req, res) => {
 app.post("/profile/update", isAuthenticated, async (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true)
     // another common pattern
-    // res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+    res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
     res.setHeader(
         'Access-Control-Allow-Headers',
@@ -190,7 +190,7 @@ app.post("/login", passport.authenticate('local')
     , async (req, res) => {
         res.setHeader('Access-Control-Allow-Credentials', true)
         // another common pattern
-        // res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+        res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
         res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
         res.setHeader(
             'Access-Control-Allow-Headers',
@@ -204,7 +204,7 @@ app.post("/login", passport.authenticate('local')
 app.post("/register", async (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true)
     // another common pattern
-    // res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+    res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
     res.setHeader(
         'Access-Control-Allow-Headers',
