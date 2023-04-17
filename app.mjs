@@ -33,7 +33,7 @@ const User = mongoose.model("User")
 const Store = mongoose.model("Store")
 const Item = mongoose.model("Item")
 
-app.use(session({
+const sess = {
     store: MongoStore.create({
       mongoUrl: 'mongodb+srv://fm1539:6M2Swvd083GgGmhO@aitdbcluster.gbfatnd.mongodb.net/?retryWrites=true&w=majority',
       ttl: 14 * 24 * 60 * 60 // = 14 days. Default
@@ -44,7 +44,14 @@ app.use(session({
     cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 30
     },
-}));
+}
+
+if (app.get('env') === 'production') {
+    app.set('trust proxy', 1) // trust first proxy
+    sess.cookie.secure = true // serve secure cookies
+  }
+  app.use(session(sess));
+
 // app.use(cookieParser('cat'))
 app.use(passport.initialize())
 app.use(passport.session())
