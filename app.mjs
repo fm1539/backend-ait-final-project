@@ -207,6 +207,7 @@ app.post("/login", async (req, res) => {
         // console.log(req.user)
 
         try {
+            console.log(req.body)
             const {username, password} = req.body
             const user = await User.findOne({ username })
             if (!user) { res.send("not found")}
