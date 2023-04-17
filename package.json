@@ -24,10 +24,15 @@
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "connect-mongo": "^5.0.0",
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "express-session": "^1.17.3",
     "md5": "^2.3.0",
     "mongo-sanitize": "^1.1.0",
-    "mongoose-slug-updater": "^3.3.0"
+    "mongoose-slug-updater": "^3.3.0",
+    "passport": "^0.6.0",
+    "passport-http": "^0.3.0",
+    "passport-local": "^1.0.0"
   }
 }

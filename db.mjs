@@ -13,13 +13,28 @@ try {
 mongoose.plugin(slug);
 
 
+
+
 const User = new mongoose.Schema({
     fName: String,
     lName: String,
     username: String,
     password: String,
     hash: String,
-    orders: [String]
+    hasStore: Boolean,
+    store: {type: mongoose.Schema.Types.ObjectId, ref: 'Store'},
+    orders: [{type: mongoose.Schema.Types.ObjectId, ref: 'Order'}]
+})
+
+const Store = new mongoose.Schema({
+  owner: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+  storeName: String,
+  items: [{type: mongoose.Schema.Types.ObjectId, ref: 'Item'}]
+})
+
+const Item = new mongoose.Schema({
+  item: String,
+  price: Number
 })
 
 const Order = new mongoose.Schema({
@@ -31,3 +46,5 @@ const Order = new mongoose.Schema({
 
 mongoose.model("User", User)
 mongoose.model("Order", Order)
+mongoose.model("Store", Store)
+mongoose.model("Item", Item)
