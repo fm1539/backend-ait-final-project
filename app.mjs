@@ -46,10 +46,11 @@ const sess = {
     },
 }
 
-// if (app.get('env') === 'production') {
-//     app.set('trust proxy', 1) // trust first proxy
-//     sess.cookie.secure = true // serve secure cookies
-//   }
+if (app.get('env') === 'production') {
+    console.log("THIS IS PROD ENV")
+    app.set('trust proxy', 1) // trust first proxy
+    sess.cookie.secure = true // serve secure cookies
+  }
   app.use(session(sess));
 
 // app.use(cookieParser('cat'))
