@@ -205,7 +205,21 @@ app.post("/login", async (req, res) => {
             'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
         )
         // console.log(req.user)
-        res.json({ username: req.user.username })
+
+        try {
+            const {username, password} = req.body
+            const user = await User.findOne({ username })
+            if (!user) { res.send("not found")}
+            if (user.password !== md5(password)) { res.send("password incorrect") }
+            res.send({
+                "status": "successful",
+                username
+            });
+        }
+        catch (e) {
+            console.log(e)
+            res.send(e)
+        }
 
     })
 
