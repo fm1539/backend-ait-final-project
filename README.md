@@ -61,7 +61,7 @@ Here's a [complex example from wikipedia](https://upload.wikimedia.org/wikipedia
 ## Research Topics
 
 * (4 points) Integrate user authentication
-    * I'm going to be using google oAuth for user authentication
+    * I'm going to be using passport local for user authentication
     * You can use any google account to sign in
 * (6 points) Next.js
     * used Next.js as the frontend framework; it's a challenging library to learn and incorporate, so I've assigned it 6 points.
@@ -76,7 +76,6 @@ Here's a [complex example from wikipedia](https://upload.wikimedia.org/wikipedia
 
 ## Annotations / References Used
 
-1. [google 0Auth client docs](https://developers.google.com/identity/protocols/oauth2/javascript-implicit-flow)
-2. [tutorial on next.js](https://nextjs.org/docs)
-3. [stripe tutorial](https://stripe.com/docs/js)
+1. [tutorial on next.js](https://nextjs.org/docs)
+2. [stripe tutorial](https://stripe.com/docs/js)
 
