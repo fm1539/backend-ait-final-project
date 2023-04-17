@@ -47,7 +47,7 @@ const sess = {
 }
 
 if (app.get('env') === 'production') {
-    console.log("THIS IS PROD ENV")
+    console.log("THIS IS PROD ENV ")
     app.set('trust proxy', 1) // trust first proxy
     sess.cookie.secure = true // serve secure cookies
   }
