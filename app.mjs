@@ -84,7 +84,7 @@ passport.deserializeUser(async function (id, done) {
 
 
 const isAuthenticated = (req, res, next) => {
-    console.log("HERE", req.user)
+    console.log("HERE", req)
     console.log(req.isAuthenticated())
     if (req.isAuthenticated()) return next()
     res.send("Not authenticated")
