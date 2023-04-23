@@ -12,6 +12,8 @@ import { startAuthenticatedSession } from './auth.mjs';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import cookieParser from 'cookie-parser';
+import Stripe from 'stripe';
+const myStripe = Stripe(process.env.TEST_SECRET_KEY)
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -136,6 +138,13 @@ app.get("/myStore/items/:username", async (req, res) => {
 
 })
 
+app.get("/:storeName/items", async (req, res) => {
+    const { storeName } = req.params
+    const store = await Store.findOne({storeName}).populate('items')
+    res.send(store.items)    
+
+})
+
 app.post("/addItem", async (req, res) => {
     const { itemName, price } = req.body.item
     const username = req.body.username
@@ -169,6 +178,41 @@ app.post("/createStore", async (req, res) => {
         await user.save()
         res.send("successful")
     }
+})
+
+app.get("/getSearchResults/:searchedStore", async (req, res) => {
+    const searchedStore = req.params.searchedStore
+    try {
+        const matchingStores = await Store.find({storeName: {"$regex": searchedStore, "$options": "i"}})
+        res.send(matchingStores.map(store => store._doc.storeName))
+    }
+    catch (e) {
+        console.log(e)
+        res.send(e)
+    }
+})
+
+app.post("/checkout", async (req, res) => {
+    const { username, orderType, price } = req.body
+    try {
+        // Create Checkout Sessions from body params.
+        const session = await myStripe.checkout.sessions.create({
+          line_items: [
+            {
+              // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
+              price: price * 100,
+              quantity: 1,
+            },
+          ],
+          mode: 'payment',
+          success_url: `${req.headers.origin}/?success=true&username=${username}&orderType=${orderType}`,
+          cancel_url: `${req.headers.origin}/?canceled=true`,
+        });
+        res.send(session.url);
+      } catch (err) {
+        res.status(err.statusCode || 500).json(err.message);
+      }
+
 })
 
 app.post("/profile/update", async (req, res) => {
