@@ -313,7 +313,7 @@ app.post("/webhook", express.raw({type: 'application/json'}), async (req, res) =
     const sig = req.headers['stripe-signature'];
     const { body } = req;
     let event = null;
-    const endpointSecret = "whsec_5ccd23efb9c8374f339fcac0207abe828fa08178b67feabeb583f516c834c0ed"
+    const endpointSecret = process.env.WEBHOOK_SECRET || "whsec_5ccd23efb9c8374f339fcac0207abe828fa08178b67feabeb583f516c834c0ed"
     try {
         event = myStripe.webhooks.constructEvent(body, sig, endpointSecret);
     } catch (err) {
