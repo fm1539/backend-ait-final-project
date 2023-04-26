@@ -38,13 +38,22 @@ const Item = new mongoose.Schema({
 })
 
 const Order = new mongoose.Schema({
-    customerEmail: String,
+    customerUsername: String,
     itemOrdered: String,
+    itemOrderedID: String,
     orderDate: String,
-    orderAmount: Number
+    orderAmount: Number,
+    shippingDetails: Object
+})
+
+const CheckoutSession = new mongoose.Schema({
+  username: String,
+  checkoutSessionID: String,
+  productID: String
 })
 
 mongoose.model("User", User)
 mongoose.model("Order", Order)
 mongoose.model("Store", Store)
 mongoose.model("Item", Item)
+mongoose.model("CheckoutSession", CheckoutSession)

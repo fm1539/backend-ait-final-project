@@ -13,7 +13,8 @@ import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import cookieParser from 'cookie-parser';
 import Stripe from 'stripe';
-const myStripe = Stripe(process.env.TEST_SECRET_KEY)
+const TEST_SECRET_KEY = "sk_test_51N0B4gJkAiw0ebTpEMYb6vsbnePpVPdnnjdxX8g82qmWeb0V9yEUF5xM8J99iFvkX5LxX1SAMAmZweOWEYApvjxs00D5CSqe5n"
+const myStripe = Stripe(TEST_SECRET_KEY)
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -27,6 +28,7 @@ app.use(cors({
     credentials: true
 }))
 // app.use(cookieParser())
+app.use(bodyParser.raw({type: "*/*"}))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -34,11 +36,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const User = mongoose.model("User")
 const Store = mongoose.model("Store")
 const Item = mongoose.model("Item")
+const CheckoutSession = mongoose.model("CheckoutSession")
+const Order = mongoose.model("Order")
 
 const sess = {
     store: MongoStore.create({
-      mongoUrl: 'mongodb+srv://fm1539:6M2Swvd083GgGmhO@aitdbcluster.gbfatnd.mongodb.net/?retryWrites=true&w=majority',
-      ttl: 14 * 24 * 60 * 60 // = 14 days. Default
+        mongoUrl: 'mongodb+srv://fm1539:6M2Swvd083GgGmhO@aitdbcluster.gbfatnd.mongodb.net/?retryWrites=true&w=majority',
+        ttl: 14 * 24 * 60 * 60 // = 14 days. Default
     }),
     secret: 'cat',
     saveUninitialized: false,
@@ -49,11 +53,10 @@ const sess = {
 }
 
 if (app.get('env') === 'production') {
-    console.log("THIS IS PROD ENV")
     app.set('trust proxy', 1) // trust first proxy
     sess.cookie.secure = true // serve secure cookies
-  }
-  app.use(session(sess));
+}
+app.use(session(sess));
 
 // app.use(cookieParser('cat'))
 app.use(passport.initialize())
@@ -79,12 +82,9 @@ passport.serializeUser(function (user, done) {
 });
 
 passport.deserializeUser(async function (id, done) {
-    const user = await User.findOne({_id: id})
+    const user = await User.findOne({ _id: id })
     done(null, user)
 });
-
-
-
 
 const isAuthenticated = (req, res, next) => {
     console.log("HERE", req)
@@ -131,25 +131,25 @@ app.get("/profile/:username", async (req, res) => {
 })
 
 app.get("/myStore/items/:username", async (req, res) => {
-    const user = await User.findOne({username: req.params.username}).populate('store')
-    const store = await Store.findOne({_id: user.store._id}).populate('items')
+    const user = await User.findOne({ username: req.params.username }).populate('store')
+    const store = await Store.findOne({ _id: user.store._id }).populate('items')
     console.log(store)
-    res.send(store.items)    
+    res.send(store.items)
 
 })
 
 app.get("/:storeName/items", async (req, res) => {
     const { storeName } = req.params
-    const store = await Store.findOne({storeName}).populate('items')
-    res.send(store.items)    
+    const store = await Store.findOne({ storeName }).populate('items')
+    res.send(store.items)
 
 })
 
 app.post("/addItem", async (req, res) => {
     const { itemName, price } = req.body.item
     const username = req.body.username
-    const user = await User.findOne({username})
-    const store = await Store.findOne({_id: user.store})
+    const user = await User.findOne({ username })
+    const store = await Store.findOne({ _id: user.store })
     const newItem = new Item({
         item: itemName,
         price: price
@@ -162,8 +162,8 @@ app.post("/addItem", async (req, res) => {
 app.post("/createStore", async (req, res) => {
     const { storeName, username } = req.body
     console.log(storeName, username)
-    const findStoreWithGivenName = await Store.findOne({storeName})
-    const user = await User.findOne({username})
+    const findStoreWithGivenName = await Store.findOne({ storeName })
+    const user = await User.findOne({ username })
     if (findStoreWithGivenName) res.send("Store with this name already exists")
     else {
         const newStore = new Store({
@@ -183,7 +183,7 @@ app.post("/createStore", async (req, res) => {
 app.get("/getSearchResults/:searchedStore", async (req, res) => {
     const searchedStore = req.params.searchedStore
     try {
-        const matchingStores = await Store.find({storeName: {"$regex": searchedStore, "$options": "i"}})
+        const matchingStores = await Store.find({ storeName: { "$regex": searchedStore, "$options": "i" } })
         res.send(matchingStores.map(store => store._doc.storeName))
     }
     catch (e) {
@@ -192,26 +192,61 @@ app.get("/getSearchResults/:searchedStore", async (req, res) => {
     }
 })
 
+app.get("/authorizationToken", (req, res) => {
+    res.send(TEST_SECRET_KEY)
+})
+
 app.post("/checkout", async (req, res) => {
-    const { username, orderType, price } = req.body
+    console.log("201", JSON.parse(req.body))
+    const { username, name, orderType, price } = JSON.parse(req.body)
+    console.log(orderType)
     try {
         // Create Checkout Sessions from body params.
+        const newProduct = await myStripe.products.create({
+            name
+        })
+        const priceObj = await myStripe.prices.create({
+            unit_amount: price * 100,
+            currency: 'usd',
+            product: newProduct.id
+        })
         const session = await myStripe.checkout.sessions.create({
-          line_items: [
-            {
-              // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-              price: price * 100,
-              quantity: 1,
-            },
-          ],
-          mode: 'payment',
-          success_url: `${req.headers.origin}/?success=true&username=${username}&orderType=${orderType}`,
-          cancel_url: `${req.headers.origin}/?canceled=true`,
+            shipping_address_collection: { allowed_countries: ['US'] },
+            shipping_options: [
+                {
+                    shipping_rate_data: {
+                        type: 'fixed_amount',
+                        fixed_amount: { amount: 0, currency: 'usd' },
+                        display_name: 'Free shipping',
+                        delivery_estimate: {
+                            minimum: { unit: 'business_day', value: 5 },
+                            maximum: { unit: 'business_day', value: 7 },
+                        },
+                    },
+                },
+            ],
+            line_items: [
+                {
+                    // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
+                    price: priceObj.id,
+                    quantity: 1,
+                },
+            ],
+            mode: 'payment',
+            success_url: `${req.headers.origin}/paymentComplete?success=true&username=${username}&orderType=${orderType}`,
+            cancel_url: `${req.headers.origin}/paymentComplete?canceled=true`,
         });
+        const newCheckoutSession = new CheckoutSession({
+            username,
+            checkoutSessionID: session.id,
+            productID: newProduct.id
+        })
+        await newCheckoutSession.save()
         res.send(session.url);
-      } catch (err) {
+    } catch (err) {
+        console.log(err)
         res.status(err.statusCode || 500).json(err.message);
-      }
+    }
 
 })
 
@@ -240,33 +275,75 @@ app.post("/profile/update", async (req, res) => {
 })
 
 app.post("/login", async (req, res) => {
-        res.setHeader('Access-Control-Allow-Credentials', true)
-        // another common pattern
-        res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
-        res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
-        res.setHeader(
-            'Access-Control-Allow-Headers',
-            'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-        )
-        // console.log(req.user)
+    res.setHeader('Access-Control-Allow-Credentials', true)
+    // another common pattern
+    res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+    res.setHeader(
+        'Access-Control-Allow-Headers',
+        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    )
+    // console.log(req.user)
 
-        try {
-            console.log(req.body)
-            const {username, password} = req.body
-            const user = await User.findOne({ username })
-            if (!user) { res.send("not found")}
-            if (user.password !== md5(password)) { res.send("password incorrect") }
-            res.send({
-                "status": "successful",
-                username
-            });
-        }
-        catch (e) {
-            console.log(e)
-            res.send(e)
-        }
+    try {
+        console.log(req.body)
+        const { username, password } = req.body
+        const user = await User.findOne({ username })
+        if (!user) { res.send("not found") }
+        if (user.password !== md5(password)) { res.send("password incorrect") }
+        res.send({
+            "status": "successful",
+            username
+        });
+    }
+    catch (e) {
+        console.log(e)
+        res.send(e)
+    }
 
-    })
+})
+
+app.post("/webhook", express.raw({type: 'application/json'}), async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    const { body } = req;
+    let event = null;
+    const endpointSecret = "whsec_5ccd23efb9c8374f339fcac0207abe828fa08178b67feabeb583f516c834c0ed"
+    try {
+        event = myStripe.webhooks.constructEvent(body, sig, endpointSecret);
+    } catch (err) {
+        // invalid signature
+        console.log("ERROR", err)
+        res.status(400).end();
+        return;
+    }
+    let intent = null;
+    switch (event['type']) {
+        case 'checkout.session.completed':
+            intent = event.data.object;
+            console.log("Succeeded:", intent);
+            const { id } = intent
+            const productForSession = await CheckoutSession.findOne({checkoutSessionID: id})
+            const { productID, username } = productForSession._doc
+            const productDetails = await myStripe.products.retrieve(productID)
+            const newOrder = new Order({
+                customerUsername: username,
+                itemOrdered: productDetails.name,
+                itemOrderedID: productID,
+                orderDate: intent.created,
+                orderAmount: intent.amount_total,
+                shippingDetails: intent.shipping_details
+            })
+            await newOrder.save()
+            break;
+        case 'payment_intent.payment_failed':
+            intent = event.data.object;
+            const message = intent.last_payment_error && intent.last_payment_error.message;
+            console.log('Failed:', intent.id, message);
+            break;
+    }
+
+    res.sendStatus(200);
+})
 
 app.post("/register", async (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true)
