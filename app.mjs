@@ -160,7 +160,7 @@ app.post("/addItem", async (req, res) => {
 })
 
 app.post("/createStore", async (req, res) => {
-    const { storeName, username } = req.body
+    const { storeName, username } = JSON.parse(req.body)
     console.log(storeName, username)
     const findStoreWithGivenName = await Store.findOne({ storeName })
     const user = await User.findOne({ username })
@@ -259,9 +259,9 @@ app.post("/profile/update", async (req, res) => {
         'Access-Control-Allow-Headers',
         'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
     )
-    console.log(req.body)
-    const newUsername = req.body.newUsername
-    const origUsername = req.body.username
+    const body = JSON.parse(req.body)
+    const newUsername = body.newUsername
+    const origUsername = body.username
     const user = await User.findOne({ username: origUsername })
     console.log(user)
     if (user) {
@@ -287,7 +287,7 @@ app.post("/login", async (req, res) => {
 
     try {
         console.log(req.body)
-        const { username, password } = req.body
+        const { username, password } = JSON.parse(req.body)
         const user = await User.findOne({ username })
         if (!user) { res.send("not found") }
         if (user.password !== md5(password)) { res.send("password incorrect") }
@@ -301,6 +301,12 @@ app.post("/login", async (req, res) => {
         res.send(e)
     }
 
+})
+
+app.get("/getOrdersForUser/:username", async (req, res) => {
+    const { username } = req.params
+    const user = await User.findOne({username}).populate('orders').exec()
+    res.send()
 })
 
 app.post("/webhook", express.raw({type: 'application/json'}), async (req, res) => {
@@ -333,7 +339,10 @@ app.post("/webhook", express.raw({type: 'application/json'}), async (req, res) =
                 orderAmount: intent.amount_total,
                 shippingDetails: intent.shipping_details
             })
-            await newOrder.save()
+            const newOrderSaved = await newOrder.save()
+            const user = await User.findOne({username}).exec()
+            user.orders.push(newOrderSaved._id)
+            await user.save()
             break;
         case 'payment_intent.payment_failed':
             intent = event.data.object;
@@ -354,9 +363,10 @@ app.post("/register", async (req, res) => {
         'Access-Control-Allow-Headers',
         'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
     )
-    const { fName, lName } = req.body
-    const username = sanitize(req.body.userName)
-    const password = sanitize(md5(req.body.password))
+    const { fName, lName } = JSON.parse(req.body)
+    const body = JSON.parse(req.body)
+    const username = sanitize(body.userName)
+    const password = sanitize(md5(body.password))
     const userExists = await User.findOne({ username: username }).exec()
     if (!userExists) {
         const newUser = new User({
