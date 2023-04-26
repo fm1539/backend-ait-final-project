@@ -306,7 +306,7 @@ app.post("/login", async (req, res) => {
 app.get("/getOrdersForUser/:username", async (req, res) => {
     const { username } = req.params
     const user = await User.findOne({username}).populate('orders').exec()
-    res.send()
+    res.send(user._doc.orders)
 })
 
 app.post("/webhook", express.raw({type: 'application/json'}), async (req, res) => {
