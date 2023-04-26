@@ -134,7 +134,7 @@ app.get("/myStore/items/:username", async (req, res) => {
     const user = await User.findOne({ username: req.params.username }).populate('store')
     const store = await Store.findOne({ _id: user.store._id }).populate('items')
     console.log(store)
-    res.send(store.items)
+    res.send({items: store.items, name: store.storeName})
 
 })
 
