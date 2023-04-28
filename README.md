@@ -60,15 +60,14 @@ Here's a [complex example from wikipedia](https://upload.wikimedia.org/wikipedia
 
 ## Research Topics
 
-* (4 points) Integrate user authentication
-    * I'm going to be using passport local for user authentication
-    * You can use any google account to sign in
+* (3 points) Unit testing
+    * I'm going to use mocha for unit testing with stubs from sinon
 * (6 points) Next.js
     * used Next.js as the frontend framework; it's a challenging library to learn and incorporate, so I've assigned it 6 points.
-* (3 points) Stripe.js
-    * used Stripe.js to handle payments from customers and send payments to stores. This requires two separate integrations, I will assign 3 points.
+* (1 points) Stripe.js
+    * used Stripe.js to handle payments from customers. I will assign 1 point to this.
 
-13 points total out of 10 required points 
+10 points total out of 10 required points 
 
 
 ## [Link to Initial Main Project File](app.mjs) 
@@ -78,4 +77,6 @@ Here's a [complex example from wikipedia](https://upload.wikimedia.org/wikipedia
 
 1. [tutorial on next.js](https://nextjs.org/docs)
 2. [stripe tutorial](https://stripe.com/docs/js)
+3. [mocha](https://mochajs.org/)
+4. [sinon](https://sinonjs.org/releases/latest/stubs/)
 
