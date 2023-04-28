@@ -13,6 +13,7 @@ import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import cookieParser from 'cookie-parser';
 import Stripe from 'stripe';
+import * as utils from './utils.mjs'
 const TEST_SECRET_KEY = "sk_test_51N0B4gJkAiw0ebTpEMYb6vsbnePpVPdnnjdxX8g82qmWeb0V9yEUF5xM8J99iFvkX5LxX1SAMAmZweOWEYApvjxs00D5CSqe5n"
 const myStripe = Stripe(TEST_SECRET_KEY)
 
@@ -56,35 +57,35 @@ if (app.get('env') === 'production') {
     app.set('trust proxy', 1) // trust first proxy
     sess.cookie.secure = true // serve secure cookies
 }
-app.use(session(sess));
+// app.use(session(sess));
 
-// app.use(cookieParser('cat'))
-app.use(passport.initialize())
-app.use(passport.session())
+// // app.use(cookieParser('cat'))
+// app.use(passport.initialize())
+// app.use(passport.session())
 
-passport.use(new LocalStrategy({ usernameField: 'username' }, async function (username, password, done) {
-    console.log(username, password)
-    try {
-        const user = await User.findOne({ username: username })
-        if (!user) { return done(null, false); }
-        if (user.password !== md5(password)) { return done(null, false); }
-        return done(null, user);
-    }
-    catch (e) {
-        console.log(e)
-        return done(e)
-    }
-}))
+// passport.use(new LocalStrategy({ usernameField: 'username' }, async function (username, password, done) {
+//     console.log(username, password)
+//     try {
+//         const user = await User.findOne({ username: username })
+//         if (!user) { return done(null, false); }
+//         if (user.password !== md5(password)) { return done(null, false); }
+//         return done(null, user);
+//     }
+//     catch (e) {
+//         console.log(e)
+//         return done(e)
+//     }
+// }))
 
-passport.serializeUser(function (user, done) {
-    console.log(`serialize: user:${user}`);
-    done(null, user._id);
-});
+// passport.serializeUser(function (user, done) {
+//     console.log(`serialize: user:${user}`);
+//     done(null, user._id);
+// });
 
-passport.deserializeUser(async function (id, done) {
-    const user = await User.findOne({ _id: id })
-    done(null, user)
-});
+// passport.deserializeUser(async function (id, done) {
+//     const user = await User.findOne({ _id: id })
+//     done(null, user)
+// });
 
 const isAuthenticated = (req, res, next) => {
     console.log("HERE", req)
@@ -180,16 +181,13 @@ app.post("/createStore", async (req, res) => {
     }
 })
 
+
 app.get("/getSearchResults/:searchedStore", async (req, res) => {
     const searchedStore = req.params.searchedStore
-    try {
-        const matchingStores = await Store.find({ storeName: { "$regex": searchedStore, "$options": "i" } })
-        res.send(matchingStores.map(store => store._doc.storeName))
-    }
-    catch (e) {
-        console.log(e)
-        res.send(e)
-    }
+    const searchedStoreFromDb = await utils.findSearchedStoreFromDb(searchedStore)
+    console.log(searchedStoreFromDb)
+    res.send(searchedStoreFromDb)
+    
 })
 
 app.get("/authorizationToken", (req, res) => {
@@ -260,18 +258,8 @@ app.post("/profile/update", async (req, res) => {
         'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
     )
     const body = JSON.parse(req.body)
-    const newUsername = body.newUsername
-    const origUsername = body.username
-    const user = await User.findOne({ username: origUsername })
-    console.log(user)
-    if (user) {
-        user.username = newUsername
-        // req.user.username = newUsername
-        await user.save()
-        res.send("successful")
-    }
-    else res.send("unsuccessful")
-
+    const update = await utils.updateProfile(body)
+    res.send(update)
 })
 
 app.post("/login", async (req, res) => {

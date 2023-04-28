@@ -3,13 +3,16 @@ import slug from 'mongoose-slug-updater';
 
 
 console.log('Waiting for connection to database...');
-try {
-  await mongoose.connect(`mongodb+srv://fm1539:6M2Swvd083GgGmhO@aitdbcluster.gbfatnd.mongodb.net/?retryWrites=true&w=majority`, {useNewUrlParser: true});
-  console.log('Successfully connected to database.');
-} catch (err) {
-  console.log('ERROR: ', err);
+const connectMongoose = async () => {
+  try {
+    await mongoose.connect(`mongodb+srv://fm1539:6M2Swvd083GgGmhO@aitdbcluster.gbfatnd.mongodb.net/?retryWrites=true&w=majority`, {useNewUrlParser: true});
+    console.log('Successfully connected to database.');
+  } catch (err) {
+    console.log('ERROR: ', err);
+  }
 }
 
+connectMongoose()
 mongoose.plugin(slug);
 
 
@@ -52,8 +55,10 @@ const CheckoutSession = new mongoose.Schema({
   productID: String
 })
 
-mongoose.model("User", User)
-mongoose.model("Order", Order)
-mongoose.model("Store", Store)
-mongoose.model("Item", Item)
-mongoose.model("CheckoutSession", CheckoutSession)
+export const UserModel = mongoose.model("User", User)
+export const OrderModel = mongoose.model("Order", Order)
+export const StoreModel = mongoose.model("Store", Store)
+export const ItemModel = mongoose.model("Item", Item)
+export const CheckoutSessionModel = mongoose.model("CheckoutSession", CheckoutSession)
+
+
