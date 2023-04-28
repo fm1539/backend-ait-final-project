@@ -159,6 +159,7 @@ app.post("/addItem", async (req, res) => {
     const newItemSaved = await newItem.save()
     store.items.push(newItemSaved)
     await store.save()
+    res.send("successful")
 })
 
 app.post("/createStore", async (req, res) => {
