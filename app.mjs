@@ -147,8 +147,9 @@ app.get("/:storeName/items", async (req, res) => {
 })
 
 app.post("/addItem", async (req, res) => {
-    const { itemName, price } = req.body.item
-    const username = req.body.username
+    const body = JSON.parse(req.body)
+    const { itemName, price } = body.item
+    const username = body.username
     const user = await User.findOne({ username })
     const store = await Store.findOne({ _id: user.store })
     const newItem = new Item({
