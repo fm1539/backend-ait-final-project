@@ -40,6 +40,8 @@ An Example Store with Embedded Items:
 
 ## [Link to Commented First Draft Schema](db.mjs) 
 
+## [Screenshot of Unit Tests](documentation/Screenshot%202023-04-28%20at%2010.39.13%20AM.png)
+
 
 ## [Wireframes](documentation/IMG_0671.jpg)
 
